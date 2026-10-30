@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: orbit-arena-server
+    runtime: node
+    plan: free
+    buildCommand: node --check server.js
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 24.19.0
