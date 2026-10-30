@@ -16,10 +16,16 @@ test('Vercel build contains the frontend and routes every API endpoint to the ga
       assert.equal(`/api/${endpoint}`.replace(new RegExp(`^${route.src}$`), route.dest), `https://arena.example.com/api/${endpoint}`);
     }
     assert.match(await readFile(path.join(output, 'static/index.html'), 'utf8'), /Orbit Arena/);
-    assert.deepEqual((await readdir(path.join(output, 'static'))).sort(), ['app.js', 'index.html', 'style.css']);
+    assert.deepEqual((await readdir(path.join(output, 'static'))).sort(), ['api-client.js', 'app.js', 'index.html', 'style.css']);
     await build({ backend: 'https://replacement.example.com', output });
     assert.match(await readFile(path.join(output, 'config.json'), 'utf8'), /replacement.example.com/);
   } finally { await rm(output, { recursive: true, force: true }); }
+});
+
+test('Vercel build rejects proxying API requests back to a frontend alias', async () => {
+  for (const backend of ['https://orbit.vercel.app', 'https://orbit-git-work.vercel.app', 'https://play.example.com']) {
+    await assert.rejects(build({ backend, frontendHosts: ['https://play.example.com'] }), /would loop/);
+  }
 });
 
 test('Vercel build fails before publishing when the server address is missing or unsafe', async () => {

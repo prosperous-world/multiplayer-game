@@ -4,11 +4,18 @@ import path from 'node:path';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 
-export async function build({ backend = process.env.GAME_SERVER_URL, output = path.join(root, '.vercel/output') } = {}) {
+export async function build({ backend = process.env.GAME_SERVER_URL, output = path.join(root, '.vercel/output'), frontendHosts = [process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL, process.env.VERCEL_PROJECT_PRODUCTION_URL].filter(Boolean) } = {}) {
   let url;
   try { url = new URL(backend); } catch { throw new Error('Set GAME_SERVER_URL to the deployed game server HTTPS origin before building.'); }
   if (url.protocol !== 'https:' || url.username || url.password || url.pathname !== '/' || url.search || url.hash) {
     throw new Error('GAME_SERVER_URL must be an HTTPS origin without credentials, a path, a query, or a fragment.');
+  }
+  const isFrontend = frontendHosts.some(host => {
+    try { return new URL(host.includes('://') ? host : `https://${host}`).hostname === url.hostname; }
+    catch { return false; }
+  });
+  if (isFrontend || url.hostname === 'vercel.app' || url.hostname.endsWith('.vercel.app')) {
+    throw new Error('GAME_SERVER_URL points to a Vercel frontend, which would loop /api requests. Use the persistent game server HTTPS origin from Render, not the Vercel site URL.');
   }
   // Vercel Build Output API: static frontend plus same-origin API proxy.
   // The persistent game server runs separately; never bundle its in-memory rooms as functions.

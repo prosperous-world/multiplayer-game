@@ -12,7 +12,7 @@ function roomFor(code) {
 function coin() { return {x:30+randomInt(940),y:30+randomInt(540)}; }
 function snapshot(r) { return {players:[...r.players.values()].map(({id,name,x,y,score,color})=>({id,name,x,y,score,color})),coins:r.coins,remaining:Math.max(0,Math.ceil((r.ends-Date.now())/1000)),round:r.round}; }
 function send(res, status, data) { res.writeHead(status,{'Content-Type':'application/json'}); res.end(JSON.stringify(data)); }
-const files = {'/':'index.html','/app.js':'app.js','/style.css':'style.css'};
+const files = {'/':'index.html','/app.js':'app.js','/api-client.js':'api-client.js','/style.css':'style.css'};
 export const server = http.createServer(async(req,res)=>{
   try {
     const url = new URL(req.url,'http://localhost');
